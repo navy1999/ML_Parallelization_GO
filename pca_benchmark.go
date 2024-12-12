@@ -1,6 +1,8 @@
 package main
 
 import (
+    "math"
+    "math/rand"
     "fmt"
     "time"
     "github.com/sjwhitworth/golearn/pca"
