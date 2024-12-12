@@ -37,7 +37,7 @@ func performPCA(data *mat.Dense, k int) *mat.Dense {
 
 
 // Run PCA benchmark using threading.
- 
+
 func runPCABenchmark(datasetConfigs [][2]int, threadCounts []int) map[[2]int]map[string][]float64 {
     results := make(map[[2]int]map[string][]float64)
 
@@ -69,5 +69,6 @@ func runPCABenchmark(datasetConfigs [][2]int, threadCounts []int) map[[2]int]map
 
     return results
 }
+
 
 
