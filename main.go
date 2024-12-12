@@ -6,6 +6,11 @@ import (
 	"time"
 )
 
+type Point struct {
+    features []float64
+    label    int
+}
+
 func generateData(numSamples, numFeatures int) []Point {
 	data := make([]Point, numSamples)
 	for i := range data {
