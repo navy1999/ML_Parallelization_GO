@@ -20,19 +20,22 @@ import (
  }
 
 // Perform PCA on the dataset using goroutines.
- func performPCA(data *mat.Dense,k int)*mat.Dense{
-     var pc stat.PC 
-     ok:=pc.PrincipalComponents(data,nil )
-     if !ok{
-         panic("PCA failed")
-     }
+func performPCA(data *mat.Dense, k int) *mat.Dense {
+    var pc stat.PC
+    ok := pc.PrincipalComponents(data, nil)
+    if !ok {
+        panic("PCA failed")
+    }
 
-     var proj mat.Dense 
-     var vectors mat.Dense
-     pc.VectorsTo(&vectors)
-     proj.Mul(embMx, vectors.Slice(0, len(e.Vectors.Values), 0, dim))
-     return &proj 
- }
+    rows, cols := data.Dims()
+    var vectors mat.Dense
+    pc.VectorsTo(&vectors)
+    
+    var proj mat.Dense
+    proj.Mul(data, vectors.Slice(0, cols, 0, k))
+    return &proj
+}
+
 
 // Run PCA benchmark using threading.
  func runPCABenchmark(datasetConfigs [][2]int ,threadCounts []int)(map[[2]int]map[string][]float64){
