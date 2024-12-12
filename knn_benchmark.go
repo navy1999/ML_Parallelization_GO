@@ -2,6 +2,7 @@ package main
 
 import (
 	"math"
+	"math/rand"
 	"sort"
 	"sync"
 )
@@ -11,6 +12,7 @@ type Point struct {
 	label    int
 }
 
+// Function to compute Euclidean distance between two points
 func euclideanDistance(a, b []float64) float64 {
 	sum := 0.0
 	for i := range a {
@@ -20,42 +22,39 @@ func euclideanDistance(a, b []float64) float64 {
 	return math.Sqrt(sum)
 }
 
-func knnClassify(trainData []Point, testPoint Point, k int, numGoroutines int) int {
-	distances := make([]float64, len(trainData))
-	var wg sync.WaitGroup
-	chunkSize := len(trainData) / numGoroutines
+// KNN classification function
+func knnClassify(trainData []Point, testPoint Point, k int) int {
+	distances := make([]struct {
+		distance float64
+		index    int
+	}, len(trainData))
 
-	for i := 0; i < numGoroutines; i++ {
+	var wg sync.WaitGroup
+
+	for i := range trainData {
 		wg.Add(1)
-		go func(start, end int) {
+		go func(i int) {
 			defer wg.Done()
-			for j := start; j < end; j++ {
-				distances[j] = euclideanDistance(trainData[j].features, testPoint.features)
-			}
-		}(i*chunkSize, (i+1)*chunkSize)
+			distances[i] = struct {
+				distance float64
+				index    int
+			}{euclideanDistance(trainData[i].features, testPoint.features), i}
+		}(i)
 	}
 	wg.Wait()
 
-	type distanceIndex struct {
-		distance float64
-		index    int
-	}
-	distanceIndices := make([]distanceIndex, len(distances))
-	for i, d := range distances {
-		distanceIndices[i] = distanceIndex{d, i}
-	}
-
-	sort.Slice(distanceIndices, func(i, j int) bool {
-		return distanceIndices[i].distance < distanceIndices[j].distance
+	sort.Slice(distances, func(i, j int) bool {
+		return distances[i].distance < distances[j].distance
 	})
 
 	labelCounts := make(map[int]int)
 	for i := 0; i < k; i++ {
-		label := trainData[distanceIndices[i].index].label
+		label := trainData[distances[i].index].label
 		labelCounts[label]++
 	}
 
-	maxCount, maxLabel := 0, 0
+	maxCount := 0
+	maxLabel := -1
 	for label, count := range labelCounts {
 		if count > maxCount {
 			maxCount = count
@@ -64,4 +63,13 @@ func knnClassify(trainData []Point, testPoint Point, k int, numGoroutines int) i
 	}
 
 	return maxLabel
+}
+
+// Benchmarking function for KNN
+func benchmarkKNN(trainData, testData []Point, k int) time.Duration {
+	start := time.Now()
+	for _, testPoint := range testData {
+		knnClassify(trainData, testPoint, k)
+	}
+	return time.Since(start)
 }
