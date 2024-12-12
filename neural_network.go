@@ -1,18 +1,20 @@
 package main
 
 import (
+    "math"
     "math/rand"
     "sync"
+    "time"
 )
 
 type NeuralNetwork struct {
     inputSize  int
     hiddenSize int
     outputSize int
-    weights1   [][]float64 // Weights from input to hidden layer.
-    weights2   [][]float64 // Weights from hidden to output layer.
-    bias1      []float64   // Biases for hidden layer.
-    bias2      []float64   // Biases for output layer.
+    weights1   [][]float64
+    weights2   [][]float64
+    bias1      []float64
+    bias2      []float64
 }
 
 func NewNeuralNetwork(inputSize, hiddenSize, outputSize int) *NeuralNetwork {
@@ -29,14 +31,14 @@ func NewNeuralNetwork(inputSize, hiddenSize, outputSize int) *NeuralNetwork {
     for i := range nn.weights1 {
         nn.weights1[i] = make([]float64, inputSize)
         for j := range nn.weights1[i] {
-            nn.weights1[i][j] = rand.Float64()*2 - 1 // Initialize weights randomly.
+            nn.weights1[i][j] = rand.Float64()*2 - 1
         }
     }
 
     for i := range nn.weights2 {
         nn.weights2[i] = make([]float64, hiddenSize)
         for j := range nn.weights2[i] {
-            nn.weights2[i][j] = rand.Float64()*2 - 1 // Initialize weights randomly.
+            nn.weights2[i][j] = rand.Float64()*2 - 1
         }
     }
 
@@ -54,7 +56,6 @@ func (nn *NeuralNetwork) Forward(input []float64) []float64 {
 
     var wg sync.WaitGroup
 
-    // Calculate hidden layer outputs in parallel.
     wg.Add(nn.hiddenSize)
     for i := range hiddenLayerOutput {
         go func(i int) { 
@@ -68,7 +69,6 @@ func (nn *NeuralNetwork) Forward(input []float64) []float64 {
     }
     wg.Wait()
 
-    // Calculate output layer outputs in parallel.
     wg.Add(nn.outputSize)
     for i := range outputLayerOutput { 
         go func(i int) { 
@@ -85,45 +85,43 @@ func (nn *NeuralNetwork) Forward(input []float64) []float64 {
     return outputLayerOutput
 }
 
-// Benchmarking function for Neural Network training and prediction.
-func benchmarkNeuralNetwork(trainData []Point, testData []Point,
-                            hiddenSize int, epochs int,
-                            learningRate float64) time.Duration {
+func benchmarkNeuralNetwork(trainData []Point, testData []Point, hiddenSize int, epochs int, learningRate float64) time.Duration {
+    inputSize := len(trainData[0].features)
+    outputSize := 2 // Binary classification
 
-	inputSize := len(trainData[0].features)
-	outputSize := 2 // Binary classification
+    inputs := make([][]float64, len(trainData))
+    targets := make([][]float64, len(trainData))
+    for i, point := range trainData {
+        inputs[i] = point.features
+        targets[i] = make([]float64, outputSize)
+        targets[i][point.label] = 1.0 // One-hot encoding of labels.
+        if point.label == 0 {
+            targets[i][1] = 0.0
+        } else {
+            targets[i][0] = 0.0
+        }
+    }
 
-	inputs := make([][]float64, len(trainData))
-	targets := make([][]float64, len(trainData))
-	for i, point := range trainData {
-	    inputs[i] = point.features
-	    targets[i] = make([]float64, outputSize)
-	    targets[i][point.label] = 1.0 // One-hot encoding of labels.
-	    if point.label == 0 { targets[i][1] = 0.0 }
-	    else { targets[i][0] = 0.0 }
-	    }
+    startTime := time.Now()
+    nn := NewNeuralNetwork(inputSize, hiddenSize, outputSize)
 
-	startTime := time.Now()
-	nn := NewNeuralNetwork(inputSize, hiddenSize, outputSize)
+    for epoch := 0; epoch < epochs; epoch++ {
+        var wg sync.WaitGroup
 
-	for epoch:= 0; epoch < epochs; epoch++{
-	    var wg sync.WaitGroup
+        for i := range inputs {
+            wg.Add(1)
+            go func(i int) {
+                defer wg.Done()
+                _ = nn.Forward(inputs[i]) // Placeholder; implement training logic here.
+            }(i)
+        }
+        wg.Wait()
+        // Implement weight updates here...
+    }
 
-	    for i:=range inputs{
-	        wg.Add(1)
-	        go func(i int){
-	            defer wg.Done()
-	            // Forward pass and backpropagation logic here...
-	            _ = nn.Forward(inputs[i]) // Placeholder; implement training logic here.
-	        }(i)
-	    }
-	    wg.Wait()
-	    // Implement weight updates here...
-	    }
-
-	for _, testPoint:=range testData{
-	    _=nn.Forward(testPoint.features) // Placeholder; implement prediction logic here.
-	    }
-	
-	return time.Since(startTime)
+    for _, testPoint := range testData {
+        _ = nn.Forward(testPoint.features) // Placeholder; implement prediction logic here.
+    }
+    
+    return time.Since(startTime)
 }
