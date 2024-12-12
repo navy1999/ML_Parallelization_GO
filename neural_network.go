@@ -4,6 +4,7 @@ import (
 	"math"
 	"math/rand"
 	"sync"
+	"time"
 )
 
 type NeuralNetwork struct {
