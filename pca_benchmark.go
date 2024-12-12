@@ -4,7 +4,6 @@ import (
      "math/rand"
      "sync"
      "time"
-
      "gonum.org/v1/gonum/mat"
      "gonum.org/v1/gonum/stat"
 )
@@ -29,7 +28,9 @@ import (
      }
 
      var proj mat.Dense 
-     proj.Mul(data, pc.VectorsTo(nil).Slice(0, k, 0, data.RawMatrix().Cols))
+     var vectors mat.Dense
+     pc.VectorsTo(&vectors)
+     proj.Mul(embMx, vectors.Slice(0, len(e.Vectors.Values), 0, dim))
      return &proj 
  }
 
