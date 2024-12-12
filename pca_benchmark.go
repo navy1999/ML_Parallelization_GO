@@ -19,7 +19,6 @@ import (
      return data 
  }
 
-// Perform PCA on the dataset using goroutines.
 func performPCA(data *mat.Dense, k int) *mat.Dense {
     var pc stat.PC
     ok := pc.PrincipalComponents(data, nil)
@@ -27,7 +26,7 @@ func performPCA(data *mat.Dense, k int) *mat.Dense {
         panic("PCA failed")
     }
 
-    rows, cols := data.Dims()
+    _, cols := data.Dims()
     var vectors mat.Dense
     pc.VectorsTo(&vectors)
     
@@ -35,6 +34,7 @@ func performPCA(data *mat.Dense, k int) *mat.Dense {
     proj.Mul(data, vectors.Slice(0, cols, 0, k))
     return &proj
 }
+
 
 
 // Run PCA benchmark using threading.
