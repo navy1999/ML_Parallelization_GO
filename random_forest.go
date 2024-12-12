@@ -2,6 +2,7 @@ package main
 
 import (
     "sync"
+    "time"
 )
 
 type DecisionTree struct {
