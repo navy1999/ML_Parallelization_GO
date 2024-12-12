@@ -1,9 +1,7 @@
 package main
 
 import (
-    "math/rand"
     "sync"
-    "time"
 )
 
 type DecisionTree struct {
