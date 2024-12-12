@@ -38,42 +38,37 @@ func performPCA(data *mat.Dense, k int) *mat.Dense {
 
 
 // Run PCA benchmark using threading.
- func runPCABenchmark(datasetConfigs [][2]int ,threadCounts []int)(map[[2]int]map[string][]float64){
-     results:=make(map[[2]int]map[string][]float64)
+ 
+func runPCABenchmark(datasetConfigs [][2]int, threadCounts []int) map[[2]int]map[string][]float64 {
+    results := make(map[[2]int]map[string][]float64)
 
-     for _,config:=range datasetConfigs{
-         nSamples,nFeatures:=config[0],config[1]
-         data:=generateDataset(nSamples,nFeatures)
+    for _, config := range datasetConfigs {
+        nSamples, nFeatures := config[0], config[1]
+        data := generateDataset(nSamples, nFeatures)
 
-         executionTimes:=make([]float64,len(threadCounts))
-         speedups:=make([]float64,len(threadCounts))
+        executionTimes := make([]float64, len(threadCounts))
+        speedups := make([]float64, len(threadCounts))
 
-         var wg sync.WaitGroup 
+        for i, threads := range threadCounts {
+            start := time.Now()
+            performPCA(data, threads)
+            executionTime := time.Since(start).Seconds()
+            executionTimes[i] = executionTime
 
-         for i ,threads:=range threadCounts{
-             start:=time.Now()
-             wg.Add(1)
-             go func() { // Use goroutine to perform PCA in parallel.
-                 defer wg.Done()
-                 performPCA(data ,threads ) 
-             }()
-             executionTime:=time.Since(start).Seconds()
-             executionTimes[i]=executionTime 
+            if i == 0 {
+                speedups[i] = 1.0
+            } else {
+                speedups[i] = executionTimes[0] / executionTime
+            }
+        }
 
-             if i==0{
-                 speedups[i]=1.0 
-             }else{
-                 speedups[i]=executionTimes[0]/executionTime 
-             }
-         }
-         wg.Wait() // Wait until all goroutines finish.
+        results[config] = map[string][]float64{
+            "execution_times": executionTimes,
+            "speedups":        speedups,
+        }
+    }
 
-         results[config]=map[string][]float64{
-             "execution_times":executionTimes,
-             "speedups":speedups,
-         }
-     }
+    return results
+}
 
-     return results 
- }
 
