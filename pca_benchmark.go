@@ -7,7 +7,7 @@ import (
 
      "gonum.org/v1/gonum/mat"
      "gonum.org/v1/gonum/stat"
- )
+)
 
 // Generate a dataset with random values.
  func generateDataset(nSamples,nFeatures int)*mat.Dense{
@@ -21,19 +21,17 @@ import (
  }
 
 // Perform PCA on the dataset using goroutines.
-func performPCA(data *mat.Dense, k int) *mat.Dense {
-    var pc stat.PC
-    ok := pc.PrincipalComponents(data, nil)
-    if !ok {
-        panic("PCA failed")
-    }
+ func performPCA(data *mat.Dense,k int)*mat.Dense{
+     var pc stat.PC 
+     ok:=pc.PrincipalComponents(data,nil )
+     if !ok{
+         panic("PCA failed")
+     }
 
-    n, _ := data.Dims()
-    var proj mat.Dense
-    proj.Mul(data, pc.VectorsTo(nil).Slice(0, k, 0, n))
-    return &proj
-}
-
+     var proj mat.Dense 
+     proj.Mul(data ,pc.VectorsTo(nil ).Slice(0,k,:))
+     return &proj 
+ }
 
 // Run PCA benchmark using threading.
  func runPCABenchmark(datasetConfigs [][2]int ,threadCounts []int)(map[[2]int]map[string][]float64){
