@@ -29,7 +29,7 @@ import (
      }
 
      var proj mat.Dense 
-     proj.Mul(data ,pc.VectorsTo(nil ).Slice(0,k,:))
+     proj.Mul(data, pc.VectorsTo(nil).Slice(0, k, 0, data.RawMatrix().Cols))
      return &proj 
  }
 
