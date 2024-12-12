@@ -2,16 +2,9 @@ package main
 
 import (
 	"math"
-	"math/rand"
 	"sort"
 	"sync"
-	"time"
 )
-
-type Point struct {
-	features []float64
-	label    int
-}
 
 // Function to compute Euclidean distance between two points
 func euclideanDistance(a, b []float64) float64 {
